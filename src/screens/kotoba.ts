@@ -2,10 +2,9 @@ import { showScreen } from '../app';
 import { audioManager } from '../lib/audio';
 import { playConfetti, playFireworks } from '../lib/celebrate';
 import { loadProgress, saveProgress } from '../lib/storage';
-import { STATIONS, WORDS } from '../data/content';
+import { STATIONS, WORDS, QUESTIONS_PER_STATION, CHOICE_COUNT } from '../data/content';
 import type { Word } from '../data/content';
 
-const QUESTIONS_PER_STATION = 3;
 const GOAL_STATION_INDEX = 5;
 const STYLE_ID = 'kotoba-screen-style';
 
@@ -39,9 +38,9 @@ function ensureStyle(): void {
     }
 
     .kotoba-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 32px;
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 24px;
       justify-content: center;
     }
 
@@ -146,7 +145,7 @@ export function renderKotobaScreen(root: HTMLElement): void {
 
     const answer = WORDS[Math.floor(Math.random() * WORDS.length)];
     currentAnswer = answer;
-    const dummies = pickDummies(WORDS, answer, 2);
+    const dummies = pickDummies(WORDS, answer, CHOICE_COUNT - 1);
     const choices = shuffle([answer, ...dummies]);
 
     if (cardsEl) {

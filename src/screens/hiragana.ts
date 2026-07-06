@@ -2,9 +2,8 @@ import { showScreen } from '../app';
 import { audioManager } from '../lib/audio';
 import { playConfetti } from '../lib/celebrate';
 import { loadProgress, saveProgress } from '../lib/storage';
-import { getKanaSetForLoop, KANA_ROMAJI, STATIONS } from '../data/content';
+import { getKanaSetForLoop, KANA_ROMAJI, STATIONS, QUESTIONS_PER_STATION, CHOICE_COUNT } from '../data/content';
 
-const QUESTIONS_PER_STATION = 3;
 const STYLE_ID = 'hiragana-screen-style';
 
 function ensureStyle(): void {
@@ -37,9 +36,9 @@ function ensureStyle(): void {
     }
 
     .hiragana-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 32px;
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 24px;
       justify-content: center;
     }
 
@@ -137,7 +136,7 @@ export function renderHiraganaScreen(root: HTMLElement): void {
 
     const answer = kanaSet[Math.floor(Math.random() * kanaSet.length)];
     currentAnswer = answer;
-    const dummies = pickDummies(kanaSet, answer, 2);
+    const dummies = pickDummies(kanaSet, answer, CHOICE_COUNT - 1);
     const choices = shuffle([answer, ...dummies]);
 
     if (cardsEl) {
