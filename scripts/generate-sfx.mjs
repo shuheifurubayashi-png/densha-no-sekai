@@ -154,6 +154,78 @@ function buildTap() {
   return tone(900, 0.1, { amp: PEAK * 0.7, fadeIn: 0.002, fadeOut: 0.06 });
 }
 
+// 救急車サイレン: 「ピーポーピーポー」。約960Hz/770Hzの2音を0.65秒ずつ交互に、2サイクル
+function buildSiren() {
+  const toneDur = 0.65;
+  const high = tone(960, toneDur, { amp: PEAK * 0.75, fadeIn: 0.02, fadeOut: 0.02 });
+  const low = tone(770, toneDur, { amp: PEAK * 0.75, fadeIn: 0.02, fadeOut: 0.02 });
+  const parts = [];
+  const cycles = 2;
+  for (let i = 0; i < cycles; i++) {
+    parts.push(high);
+    parts.push(low);
+  }
+  return concat(parts);
+}
+
+// 消防車サイレン: 「ウーーー」。400→800→400Hzのゆるやかなサインスイープ、約2.5秒
+function buildFiretruck() {
+  const durationSec = 2.5;
+  const n = Math.round(durationSec * SAMPLE_RATE);
+  const samples = new Float64Array(n);
+  const fMin = 400;
+  const fMax = 800;
+  let phase = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / SAMPLE_RATE;
+    // 0→durationSecで 400→800→400Hz と往復するよう三角波でスイープさせる
+    const cyclePos = t / durationSec; // 0..1
+    const triangle = 1 - Math.abs(2 * cyclePos - 1); // 0→1→0
+    const freq = fMin + (fMax - fMin) * triangle;
+    phase += (2 * Math.PI * freq) / SAMPLE_RATE;
+    samples[i] = PEAK * 0.7 * Math.sin(phase);
+  }
+  applyFade(samples, 0.05, 0.2);
+  return samples;
+}
+
+// 自転車ベル: 「チリンチリン」。高音サイン波(約2000Hz)の速い指数減衰を2回
+function buildBell() {
+  const strikeDur = 0.25;
+  const gapDur = 0.12;
+  function strike() {
+    const n = Math.round(strikeDur * SAMPLE_RATE);
+    const samples = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      const t = i / SAMPLE_RATE;
+      const decay = Math.exp(-t * 18);
+      samples[i] = PEAK * 0.7 * decay * Math.sin((2 * Math.PI * 2000 * i) / SAMPLE_RATE);
+    }
+    applyFade(samples, 0.002, 0.02);
+    return samples;
+  }
+  return concat([strike(), silence(gapDur), strike()]);
+}
+
+// バスのクラクション: 「プップー」。矩形波風の約330Hzトーンを短音0.18秒＋長音0.5秒、間に小さな隙間
+function buildHorn() {
+  function squareish(durationSec) {
+    const n = Math.round(durationSec * SAMPLE_RATE);
+    const samples = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      // 矩形波に近づけるため基音+奇数倍音を少量加算
+      const t = i / SAMPLE_RATE;
+      const fundamental = Math.sin(2 * Math.PI * 330 * t);
+      const third = Math.sin(2 * Math.PI * 330 * 3 * t) / 3;
+      const fifth = Math.sin(2 * Math.PI * 330 * 5 * t) / 5;
+      samples[i] = PEAK * 0.6 * (fundamental + third + fifth) * 0.6;
+    }
+    applyFade(samples, 0.01, 0.03);
+    return samples;
+  }
+  return concat([squareish(0.18), silence(0.08), squareish(0.5)]);
+}
+
 const SFX = {
   'sfx-kankan': buildKankan,
   'sfx-whistle': buildWhistle,
@@ -161,6 +233,10 @@ const SFX = {
   'sfx-retry': buildRetry,
   'sfx-fanfare': buildFanfare,
   'sfx-tap': buildTap,
+  'sfx-siren': buildSiren,
+  'sfx-firetruck': buildFiretruck,
+  'sfx-bell': buildBell,
+  'sfx-horn': buildHorn,
 };
 
 for (const [name, builder] of Object.entries(SFX)) {

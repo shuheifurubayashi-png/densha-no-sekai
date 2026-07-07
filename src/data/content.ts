@@ -1,7 +1,9 @@
 export const STATIONS = [
   { id: 'st1', type: 'hiragana', name: 'あいうえおえき', emoji: '🔤' },
   { id: 'st2', type: 'kazu', name: 'かもつえき', emoji: '📦' },
+  { id: 'iro1', type: 'iro', name: 'いろのえき', emoji: '🎨' },
   { id: 'st3', type: 'kotoba', name: 'ことばえき', emoji: '💬' },
+  { id: 'oto1', type: 'oto', name: 'おとのえき', emoji: '🔔' },
   { id: 'st4', type: 'hiragana', name: 'ひらがなえき', emoji: '🔤' },
   { id: 'st5', type: 'kazu', name: 'かずのえき', emoji: '🔢' },
   { id: 'st6', type: 'kotoba', name: 'しゅうてん', emoji: '🎆' },
@@ -148,8 +150,44 @@ export function getKazuRangeForLoop(loopIndex: number): { min: number; max: numb
   return KAZU_RANGE[index];
 }
 
-/** 1駅あたりの出題数。 */
-export const QUESTIONS_PER_STATION = 4;
+export interface IroItem {
+  id: string;
+  label: string;
+  color: string;
+}
+
+export const IRO_ITEMS: IroItem[] = [
+  { id: 'aka', label: 'あか', color: '#e24b4a' },
+  { id: 'ao', label: 'あお', color: '#4a90d9' },
+  { id: 'kiiro', label: 'きいろ', color: '#f5c542' },
+  { id: 'midori', label: 'みどり', color: '#59b25c' },
+  { id: 'shiro', label: 'しろ', color: '#f4f6f8' },
+  { id: 'kuro', label: 'くろ', color: '#4a4a4a' },
+];
+
+export interface OtoItem {
+  id: string;
+  sfx: string;
+  wordVoice: string;
+  emoji: string;
+  label: string;
+}
+
+export const OTO_ITEMS: OtoItem[] = [
+  { id: 'fumikiri', sfx: 'sfx-kankan', wordVoice: 'word-fumikiri', emoji: '🚧', label: 'ふみきり' },
+  { id: 'densha', sfx: 'sfx-whistle', wordVoice: 'word-densha', emoji: '🚃', label: 'でんしゃ' },
+  { id: 'kyuukyuusha', sfx: 'sfx-siren', wordVoice: 'word-kyuukyuusha', emoji: '🚑', label: 'きゅうきゅうしゃ' },
+  { id: 'shoubousha', sfx: 'sfx-firetruck', wordVoice: 'word-shoubousha', emoji: '🚒', label: 'しょうぼうしゃ' },
+  { id: 'jitensha', sfx: 'sfx-bell', wordVoice: 'word-jitensha', emoji: '🚲', label: 'じてんしゃ' },
+  { id: 'basu', sfx: 'sfx-horn', wordVoice: 'word-basu', emoji: '🚌', label: 'ばす' },
+];
+
+/** 1駅あたりの出題数(周回が進むほど増える。3歳が飽きない上限6問) */
+export function getQuestionCountForLoop(loopIndex: number): number {
+  if (loopIndex === 0) return 4;
+  if (loopIndex <= 2) return 5;
+  return 6;
+}
 
 /** 選択肢カードの枚数。 */
 export const CHOICE_COUNT = 4;

@@ -1,8 +1,9 @@
 import { showScreen } from '../app';
 import { audioManager } from '../lib/audio';
 import { playConfetti } from '../lib/celebrate';
-import { loadProgress, saveProgress } from '../lib/storage';
-import { getKazuRangeForLoop, STATIONS, QUESTIONS_PER_STATION } from '../data/content';
+import { loadProgress } from '../lib/storage';
+import { completeStation } from '../lib/quiz';
+import { getKazuRangeForLoop, getQuestionCountForLoop } from '../data/content';
 
 const MAX_CONTAINERS = 10;
 const STYLE_ID = 'kazu-screen-style';
@@ -188,6 +189,7 @@ export function renderKazuScreen(root: HTMLElement): void {
 
   const progress = loadProgress();
   const range = getKazuRangeForLoop(progress.loop);
+  const questionCount = getQuestionCountForLoop(progress.loop);
 
   let questionIndex = 0;
   let targetCount = 0;
@@ -228,7 +230,7 @@ export function renderKazuScreen(root: HTMLElement): void {
 
   function updateProgress(): void {
     if (progressEl) {
-      progressEl.textContent = `${questionIndex + 1} / ${QUESTIONS_PER_STATION} もんめ`;
+      progressEl.textContent = `${questionIndex + 1} / ${questionCount} もんめ`;
     }
     if (targetEl) {
       targetEl.textContent = `コンテナを ${targetCount}こ のせてね`;
@@ -261,8 +263,8 @@ export function renderKazuScreen(root: HTMLElement): void {
   }
 
   function nextQuestion(): void {
-    if (questionIndex >= QUESTIONS_PER_STATION) {
-      void handleStationClear();
+    if (questionIndex >= questionCount) {
+      void completeStation();
       return;
     }
 
@@ -370,19 +372,6 @@ export function renderKazuScreen(root: HTMLElement): void {
 
     questionIndex += 1;
     window.setTimeout(() => nextQuestion(), 900);
-  }
-
-  async function handleStationClear(): Promise<void> {
-    const latest = loadProgress();
-    const clearedIndex = latest.currentStation;
-    const clearedStation = STATIONS[clearedIndex];
-
-    await audioManager.playVoice('stamp');
-    latest.stamps.push(clearedStation.id);
-    saveProgress(latest);
-
-    playConfetti(90, 2400);
-    window.setTimeout(() => showScreen('map'), 1600);
   }
 
   containerButton?.addEventListener('click', () => {

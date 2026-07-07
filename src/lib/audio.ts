@@ -58,6 +58,32 @@ export class AudioManager {
   async playVoice(name: string): Promise<void> {
     return this.play(name);
   }
+
+  private async tryPlay(name: string): Promise<boolean> {
+    try {
+      const audio = this.getAudio(name);
+      audio.currentTime = 0;
+      await audio.play();
+      return true;
+    } catch (error) {
+      console.debug(`AudioManager.tryPlay failed: ${name}`, error);
+      return false;
+    }
+  }
+
+  async playVoiceSeq(names: string[]): Promise<void> {
+    for (const name of names) {
+      await this.play(name);
+    }
+  }
+
+  async playFirstAvailable(names: string[]): Promise<void> {
+    for (const name of names) {
+      const played = await this.tryPlay(name);
+      if (played) return;
+    }
+    console.warn(`AudioManager.playFirstAvailable: no playable audio found among ${names.join(', ')}`);
+  }
 }
 
 export const audioManager = new AudioManager();

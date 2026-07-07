@@ -3,11 +3,21 @@ import { audioManager } from '../lib/audio';
 import { loadProgress, saveProgress } from '../lib/storage';
 import { STATIONS } from '../data/content';
 import type { ScreenName } from '../lib/types';
+import {
+  PALETTE,
+  skySvg,
+  groundSvg,
+  segmentScenerySvg,
+  stationBuildingSvg,
+  clearedStarSvg,
+  bookIconSvg,
+} from '../ui/art';
+import { trainArtSvg, trainArtStandaloneSvg } from '../ui/trainArt';
 
-const STATION_GAP_X = 280;
-const STATION_Y = 220;
-const MAP_PADDING_X = 140;
-const VIEWBOX_HEIGHT = 360;
+const STATION_GAP_X = 400;
+const STATION_Y = 380;
+const MAP_PADDING_X = 200;
+const VIEWBOX_HEIGHT = 520;
 const TRAIN_TRAVEL_MS = 3600;
 
 const MAP_STYLE_ID = 'map-screen-style';
@@ -33,7 +43,7 @@ function ensureMapStyle(): void {
       transform: translateX(-50%);
       font-size: clamp(20px, 5vw, 32px);
       color: #ffffff;
-      text-shadow: 2px 2px 0 #4a90d9;
+      text-shadow: 2px 2px 0 #3fb8af;
       margin: 0;
       z-index: 5;
       pointer-events: none;
@@ -52,10 +62,13 @@ function ensureMapStyle(): void {
 
     .map-svg {
       height: 100%;
+      width: auto;
+      flex-shrink: 0;
       display: block;
     }
 
-    .map-stamps-button {
+    .map-stamps-button,
+    .map-shako-button {
       position: absolute;
       top: 12px;
       right: 12px;
@@ -64,14 +77,18 @@ function ensureMapStyle(): void {
       border-radius: 24px;
       background-color: #ffffff;
       box-shadow: 0 6px 0 #cbd8e0;
-      font-size: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 10;
     }
 
-    .map-stamps-button:active {
+    .map-shako-button {
+      top: 108px;
+    }
+
+    .map-stamps-button:active,
+    .map-shako-button:active {
       transform: translateY(3px);
       box-shadow: 0 3px 0 #cbd8e0;
     }
@@ -103,13 +120,16 @@ function ensureMapStyle(): void {
 
     @keyframes map-station-wiggle {
       0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(-4deg); }
-      75% { transform: rotate(4deg); }
+      25% { transform: rotate(-2deg); }
+      75% { transform: rotate(2deg); }
+    }
+
+    .map-train-anchor {
+      transition: transform ${TRAIN_TRAVEL_MS}ms linear;
     }
 
     .map-train-group {
       cursor: pointer;
-      transition: transform ${TRAIN_TRAVEL_MS}ms linear;
     }
 
     .map-train-group.is-disabled {
@@ -170,41 +190,19 @@ function buildRailPath(stationCount: number): string {
 
 function buildSleepers(stationCount: number): string {
   const totalWidth = MAP_PADDING_X * 2 + (stationCount - 1) * STATION_GAP_X;
-  const sleeperGap = 24;
+  const sleeperGap = 30;
   let sleepers = '';
-  for (let x = 20; x < totalWidth - 20; x += sleeperGap) {
-    sleepers += `<rect x="${x - 6}" y="${STATION_Y - 22}" width="12" height="44" rx="3" fill="#a97c50" />`;
+  for (let x = 24; x < totalWidth - 24; x += sleeperGap) {
+    sleepers += `<rect x="${x - 7}" y="${STATION_Y - 26}" width="14" height="52" rx="4" fill="${PALETTE.sleeper}" />`;
   }
   return sleepers;
 }
 
-function trainSvg(): string {
+function trainShellSvg(art: string): string {
   return `
     <g class="map-train-group" data-train>
-      <g transform="translate(-40,-34)">
-        <!-- 客車2両 -->
-        <g transform="translate(-58,10)">
-          <rect x="0" y="0" width="46" height="30" rx="8" fill="#ffd93d" stroke="#e0b800" stroke-width="2" />
-          <circle class="map-wheel" cx="10" cy="30" r="6" fill="#3a3a3a" />
-          <circle class="map-wheel" cx="36" cy="30" r="6" fill="#3a3a3a" />
-          <rect x="6" y="6" width="12" height="12" rx="2" fill="#bfe8ff" />
-          <rect x="24" y="6" width="12" height="12" rx="2" fill="#bfe8ff" />
-        </g>
-        <g transform="translate(-6,10)">
-          <rect x="0" y="0" width="46" height="30" rx="8" fill="#ff9f43" stroke="#e0821f" stroke-width="2" />
-          <circle class="map-wheel" cx="10" cy="30" r="6" fill="#3a3a3a" />
-          <circle class="map-wheel" cx="36" cy="30" r="6" fill="#3a3a3a" />
-          <rect x="6" y="6" width="12" height="12" rx="2" fill="#bfe8ff" />
-          <rect x="24" y="6" width="12" height="12" rx="2" fill="#bfe8ff" />
-        </g>
-        <!-- 先頭車両 -->
-        <g transform="translate(46,0)">
-          <rect x="0" y="0" width="48" height="40" rx="10" fill="#4a90d9" stroke="#2f6cb0" stroke-width="2" />
-          <rect x="8" y="8" width="16" height="14" rx="3" fill="#e8f7ff" />
-          <circle cx="40" cy="12" r="4" fill="#ffe066" />
-          <circle class="map-wheel" cx="10" cy="40" r="7" fill="#3a3a3a" />
-          <circle class="map-wheel" cx="34" cy="40" r="7" fill="#3a3a3a" />
-        </g>
+      <g transform="scale(1.5)">
+        ${art}
       </g>
     </g>
   `;
@@ -212,7 +210,7 @@ function trainSvg(): string {
 
 function crossingSvg(x: number): string {
   return `
-    <g class="map-crossing" data-crossing data-x="${x}" transform="translate(${x},${STATION_Y})">
+    <g class="map-crossing" data-crossing data-x="${x}" transform="translate(${x},${STATION_Y}) scale(1.5)">
       <rect x="-8" y="-46" width="16" height="16" rx="4" fill="#ffffff" stroke="#333" stroke-width="2" />
       <circle class="map-crossing-light map-crossing-light-a" cx="-3" cy="-38" r="3" fill="#ff4d4d" />
       <circle class="map-crossing-light map-crossing-light-b" cx="5" cy="-38" r="3" fill="#ff4d4d" />
@@ -238,18 +236,23 @@ export function renderMapScreen(root: HTMLElement): void {
     const x = MAP_PADDING_X + index * STATION_GAP_X;
     const isCleared = index < currentStation;
     const isNext = index === currentStation + 1;
+    const isGoal = index === stationCount - 1;
     const classNames = ['map-station-group'];
     if (isNext) classNames.push('is-next');
     return `
       <g class="${classNames.join(' ')}" data-station data-index="${index}" transform="translate(${x},${STATION_Y})">
         <g class="map-station-wrapper">
-          <circle class="map-station-circle" r="46" fill="#ffffff" stroke="#4a90d9" stroke-width="5" />
-          <text x="0" y="-4" text-anchor="middle" font-size="34">${station.emoji}</text>
-          ${isCleared ? '<text x="30" y="-34" text-anchor="middle" font-size="26">⭐</text>' : ''}
+          ${stationBuildingSvg(station.type, isGoal)}
+          ${isCleared ? clearedStarSvg(58, -132) : ''}
         </g>
-        <text x="0" y="78" text-anchor="middle" font-size="20" fill="#2b4a63">${station.name}</text>
+        <text x="0" y="70" text-anchor="middle" font-size="30" font-weight="bold" fill="${PALETTE.text}" stroke="#ffffff" stroke-width="6" paint-order="stroke">${station.name}</text>
       </g>
     `;
+  }).join('');
+
+  const scenerySvg = STATIONS.slice(0, -1).map((_, index) => {
+    const cx = MAP_PADDING_X + index * STATION_GAP_X + STATION_GAP_X / 2;
+    return segmentScenerySvg(index, cx, STATION_Y);
   }).join('');
 
   const crossingsSvg = STATIONS.slice(0, -1).map((_, index) => {
@@ -261,18 +264,22 @@ export function renderMapScreen(root: HTMLElement): void {
 
   root.innerHTML = `
     <div class="screen screen-map">
-      <h1 class="map-title">🗺️ ろせんず</h1>
-      <button class="map-stamps-button" data-stamps aria-label="すたんぷちょう">📖</button>
+      <h1 class="map-title">ろせんず</h1>
+      <button class="map-stamps-button" data-stamps aria-label="すたんぷちょう">${bookIconSvg()}</button>
+      <button class="map-shako-button" data-shako aria-label="しゃこ">
+        <div style="width: 56px;">${trainArtStandaloneSvg(progress.selectedTrain)}</div>
+      </button>
       <div class="map-scroll" data-scroll>
-        <svg class="map-svg" data-svg viewBox="0 0 ${totalWidth} ${VIEWBOX_HEIGHT}" width="${totalWidth}" height="${VIEWBOX_HEIGHT}">
-          <rect x="0" y="0" width="${totalWidth}" height="${VIEWBOX_HEIGHT}" fill="#87ceeb" />
-          <path d="M0,${VIEWBOX_HEIGHT} Q ${totalWidth * 0.2},${VIEWBOX_HEIGHT - 120} ${totalWidth * 0.4},${VIEWBOX_HEIGHT - 60} T ${totalWidth},${VIEWBOX_HEIGHT - 90} L ${totalWidth},${VIEWBOX_HEIGHT} Z" fill="#8bc34a" />
-          <path d="${buildRailPath(stationCount)}" stroke="#8a8a8a" stroke-width="6" fill="none" />
+        <svg class="map-svg" data-svg viewBox="0 0 ${totalWidth} ${VIEWBOX_HEIGHT}" style="aspect-ratio: ${totalWidth} / ${VIEWBOX_HEIGHT};">
+          ${skySvg(totalWidth, VIEWBOX_HEIGHT)}
+          ${groundSvg(totalWidth, STATION_Y, VIEWBOX_HEIGHT)}
+          ${scenerySvg}
+          <path d="${buildRailPath(stationCount)}" stroke="${PALETTE.rail}" stroke-width="8" fill="none" />
           ${buildSleepers(stationCount)}
           ${crossingsSvg}
           ${stationsSvg}
-          <g data-train-anchor transform="translate(${initialTrainX},${STATION_Y})">
-            ${trainSvg()}
+          <g class="map-train-anchor" data-train-anchor transform="translate(${initialTrainX},${STATION_Y})">
+            ${trainShellSvg(trainArtSvg(progress.selectedTrain))}
           </g>
         </svg>
       </div>
@@ -284,19 +291,24 @@ export function renderMapScreen(root: HTMLElement): void {
     showScreen('stamps');
   });
 
+  root.querySelector('[data-shako]')?.addEventListener('click', () => {
+    audioManager.play('sfx-tap');
+    showScreen('shako');
+  });
+
   let isAnimating = false;
   const trainAnchor = root.querySelector<SVGGElement>('[data-train-anchor]');
   const trainGroup = root.querySelector<SVGGElement>('[data-train]');
   const scrollContainer = root.querySelector<HTMLDivElement>('[data-scroll]');
 
-  scrollToStation(scrollContainer, currentStation);
+  scrollToStation(scrollContainer, currentStation, 'auto');
 
-  function scrollToStation(container: HTMLDivElement | null, index: number): void {
+  function scrollToStation(container: HTMLDivElement | null, index: number, behavior: ScrollBehavior): void {
     if (!container) return;
     const targetX = MAP_PADDING_X + index * STATION_GAP_X;
     const scale = container.clientHeight / VIEWBOX_HEIGHT;
     const targetLeft = targetX * scale - container.clientWidth / 2;
-    container.scrollTo({ left: Math.max(targetLeft, 0), behavior: 'auto' });
+    container.scrollTo({ left: Math.max(targetLeft, 0), behavior });
   }
 
   function setInputEnabled(enabled: boolean): void {
@@ -334,8 +346,9 @@ export function renderMapScreen(root: HTMLElement): void {
       `[data-crossing][data-x="${crossingX}"]`,
     );
 
-    // 電車を出発させる
+    // 電車を出発させる(進行に合わせて画面もスクロール)
     trainAnchor.style.transform = `translateX(${toX - fromX}px)`;
+    window.setTimeout(() => scrollToStation(scrollContainer, nextIndex, 'smooth'), TRAIN_TRAVEL_MS * 0.25);
 
     const halfwayDelay = TRAIN_TRAVEL_MS * 0.4;
     const crossingCloseDuration = 900;
