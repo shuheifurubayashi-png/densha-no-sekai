@@ -19,7 +19,13 @@ export interface QuizConfig {
   screenClass: string; // 例 'screen-hiragana'
   title: string; // 例 '🚉 もじ'
   questionCount: number;
-  buildQuestion: () => QuizQuestion;
+  buildQuestion: (previousAnswerId: string | null) => QuizQuestion;
+}
+
+let replayMode = false;
+/** クリア済み駅の再プレイ中はスタンプ・進行状況を変更しない */
+export function setReplayMode(value: boolean): void {
+  replayMode = value;
 }
 
 function ensureStyle(): void {
@@ -93,6 +99,8 @@ export function runQuiz(root: HTMLElement, config: QuizConfig): void {
   }
 
   function nextQuestion(): void {
+    if (!cardsEl?.isConnected) return;
+
     if (questionIndex >= config.questionCount) {
       void completeStation();
       return;
@@ -101,7 +109,7 @@ export function runQuiz(root: HTMLElement, config: QuizConfig): void {
     updateProgress();
     inputLocked = false;
 
-    const question = config.buildQuestion();
+    const question = config.buildQuestion(currentQuestion?.answerId ?? null);
     currentQuestion = question;
 
     if (cardsEl) {
@@ -235,6 +243,14 @@ function showTrainUnlockCeremony(trainId: string): void {
 }
 
 export async function completeStation(): Promise<void> {
+  if (replayMode) {
+    setReplayMode(false);
+    audioManager.play('sfx-fanfare');
+    playConfetti(90, 2400);
+    window.setTimeout(() => showScreen('map'), 1600);
+    return;
+  }
+
   const latest = loadProgress();
   const clearedIndex = latest.currentStation;
   const clearedStation = STATIONS[clearedIndex];

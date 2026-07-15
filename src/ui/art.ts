@@ -54,6 +54,24 @@ const STATION_THEME: Record<string, { roof: string; symbol: string }> = {
         <circle cx="-10" cy="10" r="6" /><circle cx="12" cy="4" r="6" />
       </g>`,
   },
+  katachi: {
+    roof: '#9b7fd4',
+    symbol: `
+      <g transform="translate(0,-68)">
+        <circle cx="-18" cy="0" r="8" fill="#e24b4a" />
+        <polygon points="0,-10 8,4 -8,4" fill="#59b25c" />
+        <rect x="10" y="-6" width="14" height="14" rx="2" fill="#4a90d9" />
+      </g>`,
+  },
+  kisekae: {
+    roof: '#f0a8c4',
+    symbol: `
+      <g transform="translate(0,-68)">
+        <path d="M -18,-10 L -2,0 L -18,10 Z" fill="#e85d9c" />
+        <path d="M 18,-10 L 2,0 L 18,10 Z" fill="#e85d9c" />
+        <circle cx="0" cy="0" r="5" fill="#ba3d78" />
+      </g>`,
+  },
 };
 
 /** ゴール駅(しゅうてん)用テーマ */
@@ -252,6 +270,29 @@ export function skySvg(totalWidth: number, viewboxHeight: number): string {
     <rect x="0" y="${Math.round(viewboxHeight * 0.42)}" width="${totalWidth}" height="${Math.round(viewboxHeight * 0.58)}" fill="${PALETTE.skyLow}" />
     ${sunSvg(240, 96)}
     ${clouds}
+  `;
+}
+
+/** 改札機2台(通路が開いた状態)。ことばカード「かいさつ」用の単体表示SVG */
+export function kaisatsuArtSvg(): string {
+  const gate = (x: number): string => `
+    <g transform="translate(${x},0)">
+      <rect x="0" y="-52" width="28" height="52" rx="10" fill="#e8912d" stroke="#b56a15" stroke-width="3" />
+      <rect x="5" y="-46" width="18" height="14" rx="4" fill="#bfe8ff" />
+      <circle cx="14" cy="-16" r="5" fill="#59b25c" />
+    </g>
+  `;
+  const flap = (x: number, rotate: number): string => `
+    <rect x="${x - 2.5}" y="-38" width="5" height="24" rx="2.5" fill="#5f6b73" transform="rotate(${rotate} ${x} -38)" />
+  `;
+  return `
+    <svg viewBox="-64 -60 128 66" aria-hidden="true">
+      <rect x="-64" y="0" width="128" height="6" rx="3" fill="#cfc4b4" />
+      ${gate(-64)}
+      ${flap(-30, 70)}
+      ${flap(28, -70)}
+      ${gate(36)}
+    </svg>
   `;
 }
 

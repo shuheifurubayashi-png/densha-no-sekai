@@ -6,6 +6,8 @@ export const STATIONS = [
   { id: 'oto1', type: 'oto', name: 'おとのえき', emoji: '🔔' },
   { id: 'st4', type: 'hiragana', name: 'ひらがなえき', emoji: '🔤' },
   { id: 'st5', type: 'kazu', name: 'かずのえき', emoji: '🔢' },
+  { id: 'katachi1', type: 'katachi', name: 'かたちのえき', emoji: '🔷' },
+  { id: 'kisekae1', type: 'kisekae', name: 'おしゃれえき', emoji: '🎀' },
   { id: 'st6', type: 'kotoba', name: 'しゅうてん', emoji: '🎆' },
 ] as const;
 
@@ -180,6 +182,34 @@ export const OTO_ITEMS: OtoItem[] = [
   { id: 'shoubousha', sfx: 'sfx-firetruck', wordVoice: 'word-shoubousha', emoji: '🚒', label: 'しょうぼうしゃ' },
   { id: 'jitensha', sfx: 'sfx-bell', wordVoice: 'word-jitensha', emoji: '🚲', label: 'じてんしゃ' },
   { id: 'basu', sfx: 'sfx-horn', wordVoice: 'word-basu', emoji: '🚌', label: 'ばす' },
+];
+
+export interface KatachiItem {
+  id: string;
+  label: string;
+}
+
+export const KATACHI_ITEMS: KatachiItem[] = [
+  { id: 'maru', label: 'まる' },
+  { id: 'sankaku', label: 'さんかく' },
+  { id: 'shikaku', label: 'しかく' },
+  { id: 'hoshi', label: 'ほし' },
+  { id: 'haato', label: 'はーと' },
+  { id: 'daiya', label: 'だいや' },
+];
+
+export interface KisekaeItem {
+  id: string;
+  label: string;
+}
+
+export const KISEKAE_ITEMS: KisekaeItem[] = [
+  { id: 'boushi-aka', label: 'あかい ぼうし' },
+  { id: 'boushi-ao', label: 'あおい ぼうし' },
+  { id: 'mafuraa', label: 'まふらー' },
+  { id: 'hata', label: 'はた' },
+  { id: 'hoshi', label: 'ほしの かざり' },
+  { id: 'ribon', label: 'りぼん' },
 ];
 
 /** 1駅あたりの出題数(周回が進むほど増える。3歳が飽きない上限6問) */

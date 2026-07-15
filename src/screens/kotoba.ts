@@ -3,8 +3,16 @@ import type { QuizQuestion } from '../lib/quiz';
 import { loadProgress } from '../lib/storage';
 import { WORDS, getQuestionCountForLoop, CHOICE_COUNT } from '../data/content';
 import type { Word } from '../data/content';
+import { kaisatsuArtSvg } from '../ui/art';
+import { trainArtStandaloneSvg } from '../ui/trainArt';
 
 const STYLE_ID = 'kotoba-screen-style';
+
+/** emoji だと実物と紛らわしい単語をSVGで描画する */
+const WORD_ART: Record<string, string> = {
+  kaisatsu: kaisatsuArtSvg(),
+  kamotsu: trainArtStandaloneSvg('kamotsu'),
+};
 
 function ensureStyle(): void {
   if (document.getElementById(STYLE_ID)) return;
@@ -45,6 +53,18 @@ function ensureStyle(): void {
       font-size: 56px;
     }
 
+    .kotoba-card-art {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kotoba-card-art svg {
+      width: 110px;
+      height: auto;
+      display: block;
+    }
+
     .kotoba-card-label {
       font-size: 22px;
       font-weight: bold;
@@ -71,20 +91,25 @@ function shuffle<T>(items: T[]): T[] {
   return result;
 }
 
-function buildQuestion(): QuizQuestion {
-  const answer = WORDS[Math.floor(Math.random() * WORDS.length)];
+function buildQuestion(previousAnswerId: string | null): QuizQuestion {
+  const pool = WORDS.filter((word) => word.id !== previousAnswerId);
+  const answer = pool[Math.floor(Math.random() * pool.length)];
   const dummies = pickDummies(WORDS, answer, CHOICE_COUNT - 1);
   const choices = shuffle([answer, ...dummies]);
 
   const cardsHtml = choices
-    .map(
-      (word) => `
+    .map((word) => {
+      const art = WORD_ART[word.id];
+      const visual = art
+        ? `<div class="kotoba-card-art">${art}</div>`
+        : `<span class="kotoba-card-emoji">${word.emoji}</span>`;
+      return `
         <button class="kotoba-card" data-choice="${word.id}">
-          <span class="kotoba-card-emoji">${word.emoji}</span>
+          ${visual}
           <span class="kotoba-card-label">${word.label}</span>
         </button>
-      `,
-    )
+      `;
+    })
     .join('');
 
   return {

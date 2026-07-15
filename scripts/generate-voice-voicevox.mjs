@@ -269,6 +269,24 @@ async function main() {
   // --- おと確認 ---
   await gen('q-oto', 'いまの おとは、なんの おとかな？');
 
+  // --- かたち（形はめあそび） ---
+  await gen('q-katachi', 'どの　かたちが　はまるかな？');
+
+  await gen('katachi-maru', 'まる！');
+  await gen('katachi-sankaku', 'さんかく！');
+  await gen('katachi-shikaku', 'しかく！');
+  await gen('katachi-hoshi', 'ほし！');
+  await gen('katachi-haato', 'はーと！');
+  await gen('katachi-daiya', 'だいや！');
+
+  // --- きせかえ（でんしゃのおしゃれあそび） ---
+  await gen('q-kisekae-boushi-aka', 'あかい　ぼうしを　つけて　あげて');
+  await gen('q-kisekae-boushi-ao', 'あおい　ぼうしを　つけて　あげて');
+  await gen('q-kisekae-mafuraa', 'まふらーを　まいて　あげて');
+  await gen('q-kisekae-hata', 'はたを　つけて　あげて');
+  await gen('q-kisekae-hoshi', 'ほしの　かざりを　つけて　あげて');
+  await gen('q-kisekae-ribon', 'りぼんを　つけて　あげて');
+
   // --- しゃこ（車両解放/選択） ---
   await gen('get-train', 'あたらしい でんしゃを げっと！');
   await gen('shako-intro', 'すきな でんしゃを えらんでね');

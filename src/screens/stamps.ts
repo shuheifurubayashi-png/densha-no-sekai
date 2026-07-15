@@ -13,11 +13,17 @@ function ensureStyle(): void {
     .screen-stamps {
       background: linear-gradient(to bottom, #87ceeb, #eaf6ff);
       overflow-y: auto;
+      justify-content: flex-start;
     }
 
     .stamps-loop-row {
       font-size: 28px;
       letter-spacing: 4px;
+      color: #2b4a63;
+    }
+
+    .stamps-total {
+      font-size: 20px;
       color: #2b4a63;
     }
 
@@ -102,6 +108,7 @@ export function renderStampsScreen(root: HTMLElement): void {
     <div class="screen screen-stamps">
       <h1 class="screen-title">🎫 すたんぷちょう</h1>
       <p class="stamps-loop-row">${loopMarks}</p>
+      <p class="stamps-total">ぜんぶで ${progress.stamps.length} こ</p>
       ${
         progress.stamps.length > 0
           ? `<div class="stamps-grid">${badgesHtml}</div>`

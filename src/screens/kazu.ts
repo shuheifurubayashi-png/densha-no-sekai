@@ -193,8 +193,10 @@ export function renderKazuScreen(root: HTMLElement): void {
 
   let questionIndex = 0;
   let targetCount = 0;
+  let lastTargetCount = 0;
   let loadedCount = 0;
   let inputLocked = false;
+  let phase: 'load' | 'check' = 'load';
 
   root.innerHTML = `
     <div class="screen screen-kazu">
@@ -225,7 +227,11 @@ export function renderKazuScreen(root: HTMLElement): void {
 
   root.querySelector('[data-repeat]')?.addEventListener('click', () => {
     if (!targetCount) return;
-    void audioManager.playVoice(`q-kazu-${targetCount}`);
+    if (phase === 'check') {
+      void audioManager.playVoice('q-kazu-check');
+    } else {
+      void audioManager.playVoice(`q-kazu-${targetCount}`);
+    }
   });
 
   function updateProgress(): void {
@@ -263,15 +269,22 @@ export function renderKazuScreen(root: HTMLElement): void {
   }
 
   function nextQuestion(): void {
+    if (!trackEl?.isConnected) return;
+
     if (questionIndex >= questionCount) {
       void completeStation();
       return;
     }
 
-    targetCount = range.min + Math.floor(Math.random() * (range.max - range.min + 1));
+    do {
+      targetCount = range.min + Math.floor(Math.random() * (range.max - range.min + 1));
+    } while (targetCount === lastTargetCount && range.max > range.min);
+    lastTargetCount = targetCount;
+
     resetTrack();
     updateProgress();
     inputLocked = false;
+    phase = 'load';
     showLoadPhase();
 
     void audioManager.playVoice(`q-kazu-${targetCount}`);
@@ -318,8 +331,11 @@ export function renderKazuScreen(root: HTMLElement): void {
   }
 
   function startCheckPhase(): void {
+    if (!trackEl?.isConnected) return;
+
     showCheckPhase();
     inputLocked = false;
+    phase = 'check';
 
     const dummies = pickCheckDummies(targetCount, 2);
     const choices = shuffle([targetCount, ...dummies]);

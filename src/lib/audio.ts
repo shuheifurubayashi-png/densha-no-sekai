@@ -3,6 +3,8 @@ const AUDIO_EXT = 'm4a';
 export class AudioManager {
   private cache = new Map<string, HTMLAudioElement>();
   private unlocked = false;
+  private currentVoice: HTMLAudioElement | null = null;
+  private voiceToken = 0;
 
   private resolveUrl(name: string): string {
     return `${import.meta.env.BASE_URL}audio/${name}.${AUDIO_EXT}`;
@@ -45,25 +47,58 @@ export class AudioManager {
     }
   }
 
-  async play(name: string): Promise<void> {
+  /**
+   * 再生を開始し、再生終了(ended/pause/error/安全タイムアウト)まで待機する。
+   */
+  private async playToEnd(name: string): Promise<void> {
     try {
       const audio = this.getAudio(name);
       audio.currentTime = 0;
       await audio.play();
+
+      await new Promise<void>((resolve) => {
+        let settled = false;
+        const finish = (): void => {
+          if (settled) return;
+          settled = true;
+          audio.removeEventListener('ended', finish);
+          audio.removeEventListener('pause', finish);
+          audio.removeEventListener('error', finish);
+          window.clearTimeout(timeoutId);
+          resolve();
+        };
+
+        const timeoutMs =
+          Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration * 1000 + 1500 : 10000;
+        const timeoutId = window.setTimeout(finish, timeoutMs);
+
+        audio.addEventListener('ended', finish);
+        audio.addEventListener('pause', finish);
+        audio.addEventListener('error', finish);
+      });
     } catch (error) {
       console.warn(`AudioManager.play failed: ${name}`, error);
     }
   }
 
+  async play(name: string): Promise<void> {
+    return this.playToEnd(name);
+  }
+
   async playVoice(name: string): Promise<void> {
-    return this.play(name);
+    return this.playVoiceSeq([name]);
+  }
+
+  /** 再生中のボイスがあれば停止する(pauseイベントで待機中のplayToEndが即解除される) */
+  stopVoice(): void {
+    if (this.currentVoice && !this.currentVoice.paused) {
+      this.currentVoice.pause();
+    }
   }
 
   private async tryPlay(name: string): Promise<boolean> {
     try {
-      const audio = this.getAudio(name);
-      audio.currentTime = 0;
-      await audio.play();
+      await this.playToEnd(name);
       return true;
     } catch (error) {
       console.debug(`AudioManager.tryPlay failed: ${name}`, error);
@@ -72,9 +107,14 @@ export class AudioManager {
   }
 
   async playVoiceSeq(names: string[]): Promise<void> {
+    const token = ++this.voiceToken;
+    this.stopVoice();
     for (const name of names) {
-      await this.play(name);
+      if (token !== this.voiceToken) return;
+      this.currentVoice = this.getAudio(name);
+      await this.playToEnd(name);
     }
+    if (token === this.voiceToken) this.currentVoice = null;
   }
 
   async playFirstAvailable(names: string[]): Promise<void> {

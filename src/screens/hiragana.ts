@@ -66,8 +66,9 @@ export function renderHiraganaScreen(root: HTMLElement): void {
   const progress = loadProgress();
   const kanaSet = getKanaSetForLoop(progress.loop);
 
-  function buildQuestion(): QuizQuestion {
-    const answer = kanaSet[Math.floor(Math.random() * kanaSet.length)];
+  function buildQuestion(previousAnswerId: string | null): QuizQuestion {
+    const pool = kanaSet.filter((kana) => kana !== previousAnswerId);
+    const answer = pool[Math.floor(Math.random() * pool.length)];
     const dummies = pickDummies(kanaSet, answer, CHOICE_COUNT - 1);
     const choices = shuffle([answer, ...dummies]);
 

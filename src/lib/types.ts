@@ -7,7 +7,9 @@ export type ScreenName =
   | 'iro'
   | 'oto'
   | 'stamps'
-  | 'shako';
+  | 'shako'
+  | 'katachi'
+  | 'kisekae';
 
 export interface Progress {
   version: 2;

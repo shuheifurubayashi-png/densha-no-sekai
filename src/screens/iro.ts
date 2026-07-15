@@ -69,8 +69,9 @@ function shuffle<T>(items: T[]): T[] {
   return result;
 }
 
-function buildQuestion(): QuizQuestion {
-  const answer = IRO_ITEMS[Math.floor(Math.random() * IRO_ITEMS.length)];
+function buildQuestion(previousAnswerId: string | null): QuizQuestion {
+  const pool = IRO_ITEMS.filter((item) => item.id !== previousAnswerId);
+  const answer = pool[Math.floor(Math.random() * pool.length)];
   const dummies = pickDummies(IRO_ITEMS, answer, CHOICE_COUNT - 1);
   const choices = shuffle([answer, ...dummies]);
 

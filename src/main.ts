@@ -1,5 +1,5 @@
 import './styles.css';
-import { showScreen } from './app';
+import { showScreen, initHistoryGuard } from './app';
 import { audioManager } from './lib/audio';
 
 function renderTitleScreen(): void {
@@ -24,6 +24,7 @@ function renderTitleScreen(): void {
 }
 
 renderTitleScreen();
+initHistoryGuard();
 
 if ('serviceWorker' in navigator) {
   import('virtual:pwa-register')

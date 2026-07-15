@@ -111,12 +111,12 @@ function kamotsu(): string {
         ${wheel(44, 6)}
       </g>
       <g transform="translate(24,0)">
-        <rect x="0" y="-36" width="34" height="29" rx="5" fill="#8a5a3b" stroke="#5f3b24" stroke-width="2.5" />
-        <rect x="30" y="-50" width="26" height="43" rx="6" fill="#8a5a3b" stroke="#5f3b24" stroke-width="2.5" />
-        ${windowRect(36, -44, 14, 12)}
-        <rect x="6" y="-50" width="10" height="15" rx="3" fill="#4a4a4a" />
-        <circle cx="4" cy="-58" r="5" fill="#cfcfcf" opacity="0.8" />
-        <circle cx="12" cy="-64" r="4" fill="#e0e0e0" opacity="0.6" />
+        <rect x="0" y="-50" width="26" height="43" rx="6" fill="#8a5a3b" stroke="#5f3b24" stroke-width="2.5" />
+        ${windowRect(5, -44, 14, 12)}
+        <rect x="22" y="-36" width="34" height="29" rx="5" fill="#8a5a3b" stroke="#5f3b24" stroke-width="2.5" />
+        <rect x="44" y="-50" width="10" height="15" rx="3" fill="#4a4a4a" />
+        <circle cx="50" cy="-58" r="5" fill="#cfcfcf" opacity="0.8" />
+        <circle cx="56" cy="-64" r="4" fill="#e0e0e0" opacity="0.6" />
         <circle cx="58" cy="-16" r="4" fill="#ffe066" />
         ${wheel(10)}
         ${wheel(44)}

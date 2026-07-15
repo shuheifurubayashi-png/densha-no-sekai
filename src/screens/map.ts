@@ -1,6 +1,7 @@
 import { showScreen } from '../app';
 import { audioManager } from '../lib/audio';
 import { loadProgress, saveProgress } from '../lib/storage';
+import { setReplayMode } from '../lib/quiz';
 import { STATIONS } from '../data/content';
 import type { ScreenName } from '../lib/types';
 import {
@@ -91,6 +92,11 @@ function ensureMapStyle(): void {
     .map-shako-button:active {
       transform: translateY(3px);
       box-shadow: 0 3px 0 #cbd8e0;
+    }
+
+    .map-stamps-button.is-disabled,
+    .map-shako-button.is-disabled {
+      pointer-events: none;
     }
 
     .map-station-group {
@@ -226,6 +232,7 @@ function crossingSvg(x: number): string {
 
 export function renderMapScreen(root: HTMLElement): void {
   ensureMapStyle();
+  setReplayMode(false);
 
   const progress = loadProgress();
   const currentStation = Math.min(progress.currentStation, STATIONS.length - 1);
@@ -316,6 +323,8 @@ export function renderMapScreen(root: HTMLElement): void {
     root.querySelectorAll('[data-station]').forEach((element) => {
       element.classList.toggle('is-disabled', !enabled);
     });
+    root.querySelector('[data-stamps]')?.classList.toggle('is-disabled', !enabled);
+    root.querySelector('[data-shako]')?.classList.toggle('is-disabled', !enabled);
   }
 
   function goToNextStation(): void {
@@ -391,6 +400,10 @@ export function renderMapScreen(root: HTMLElement): void {
       const index = Number(element.dataset.index);
       if (index === currentStation + 1) {
         goToNextStation();
+      } else if (index <= currentStation) {
+        audioManager.play('sfx-tap');
+        setReplayMode(true);
+        showScreen(STATIONS[index].type as ScreenName);
       }
     });
   });
